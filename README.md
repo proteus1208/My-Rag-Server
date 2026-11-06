@@ -1,916 +1,554 @@
-**# RAG Platform (ragJ_platform)**
+# RAG Platform
 
+An open-source, high-performance Retrieval-Augmented Generation (RAG) platform built with Python (FastAPI) and TypeScript (React), designed for document-based AI assistants.
 
-An open-source, high-performance RAG (Retrieval-Augmented Generation) platform built with Python (FastAPI) and TypeScript (React), designed for document-based AI assistants.
+## 🖼️ Demo & Screenshots
 
+![Log in](images/log.png)
 
-**## 🖼️ Demo & Screenshots**
+![Web UI - Dashboard](images/index.png)
 
+![Web UI - Document Management](images/upload.png)
 
-![Log in]\(images/log.png)
+![Web UI - Chat](images/chat.png)
 
-![Web UI - Dashboard]\(images/index.png)
+![Web UI - Workflows](images/workflow.png)
 
-![Web UI - Document Management]\(images/upload.png)
+![RAG](images/rag.png)
 
-![Web UI - Chat]\(images/chat.png)
+## 🚀 Project Overview
 
-![Web UI - Workflows]\(images/workflow\.png)
+This project aims to provide a powerful RAG platform inspired by systems such as Dify. It uses FastAPI for backend APIs and orchestration, alongside a modern React web interface for management and workflows.
 
-![RAG]\(images/rag.png)
+### Core Features
 
+- 🧠 **Intelligent Q&A:** Perform complex question answering over your documents using a RAG pipeline.
+- 📚 **Knowledge Base Management:** Create and manage separate knowledge bases.
+- 📄 **Multi-Format Document Support:** Upload and process multiple document formats, including `.txt` and `.md` files.
+- 🔌 **Flexible API:** Use a straightforward REST API to integrate the platform with other applications.
+- 🤖 **Multi-Model Support:** Integrate DeepSeek, Qwen, and SiliconFlow APIs for different use cases.
+- ⚡ **High-Performance Backend:** Use FastAPI for asynchronous request handling.
+- 🎨 **Modern Web Interface:** Manage the platform through a React interface built with Material UI.
+- ⚙️ **Flexible Configuration:** Switch models and manage configuration settings.
+- 🌍 **Internationalization:** Switch the interface between Chinese and English.
 
-**## 🚀 Project Overview**
+## 🌐 Public API & Embedding
 
+The platform exposes a public API protected by an `x-api-key` header. It can be used to test workflows through chat and embed an assistant in another web page.
 
-This project aims to create a powerful RAG platform, inspired by systems like Dify, with a clean modular architecture: FastAPI for backend APIs and orchestration, and a modern React web UI for management and workflows.
+### Public Endpoints
 
+All public endpoints require an API key and do not require an interactive user login.
 
-**### Core Features**
+- `POST /api/v1/public/chat` — Send a non-streaming chat request. The request body uses `ChatRequest`.
+- `POST /api/v1/public/chat/stream` — Send a streaming chat request using Server-Sent Events (SSE). This is suitable for web embeds.
+- `POST /api/v1/public/workflows/{workflow_id}/run` — Run a saved workflow without streaming.
+- `POST /api/v1/public/workflows/{workflow_id}/run/stream` — Run a saved workflow with SSE events for started, progress, and completed states.
+- `GET /api/v1/public/workflows/{workflow_id}/io-schema` — Infer the workflow-level input and output schema for integration.
+- `POST /api/v1/public/workflows/{workflow_id}/execute` — Legacy alias for the `run` endpoint, retained for compatibility.
 
+### Admin Endpoints
 
-\-   🧠 **\*\*Intelligent Q&A\*\***: Perform complex question-answering on your documents using a RAG pipeline.
+These endpoints manage API keys.
 
-\-   📚 **\*\*Knowledge Base Management\*\***: Easily create and manage distinct knowledge bases.
+- `POST /api/v1/admin/api-keys` — Create an API key. Supported scopes include `chat` and `workflow`; optional restrictions include `allowed_kb` and `allowed_workflow_id`.
+- `GET /api/v1/admin/api-keys` — List API keys for the current tenant.
+- `DELETE /api/v1/admin/api-keys/{id}` — Revoke an API key.
 
-\-   📄 **\*\*Multi-Format Document Support\*\***: Upload and process various document formats (starting with \`.txt\` and \`.md\`).
+### Workflow API Examples
 
-\-   🔌 **\*\*Flexible API\*\***: A straightforward RESTful API for integration with any application.
+Replace `YOUR_API_BASE_URL`, `WORKFLOW_ID`, and `YOUR_KEY` with the values from your environment.
 
-\-   🤖 **\*\*Multi-Model Support\*\***: Supports DeepSeek, Qwen, and SiliconFlow APIs for different use cases.
+**Run a workflow (non-streaming):**
 
-\-   ⚡ **\*\*High-Performance Backend\*\***: FastAPI-based backend for asynchronous request handling.
+```bash
+curl -sS -X POST "YOUR_API_BASE_URL/api/v1/public/workflows/WORKFLOW_ID/run" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_KEY" \
+  -d '{"input_data":{"text":"hello"}}'
+```
 
-\-   🎨 **\*\*Modern Web Interface\*\***: React-based frontend with Material-UI for intuitive management.
+**Run a workflow (streaming with SSE):**
 
-\-   ⚙️ **\*\*Flexible Configuration\*\***: Easy model switching and configuration management.
+```bash
+curl -N -X POST "YOUR_API_BASE_URL/api/v1/public/workflows/WORKFLOW_ID/run/stream" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_KEY" \
+  -d '{"input_data":{"text":"hello"},"debug":false}'
+```
 
-\-   🌍 **\*\*Internationalization\*\***: Support for Chinese and English language switching.
+### Embedding Example
 
+**Option 1: Use an iframe**
 
-**## 🌐 Public API & Embedding**
+```html
+<iframe
+  src="YOUR_EMBED_URL"
+  style="width: 100%; height: 560px; border: 1px solid #eee; border-radius: 8px"
+></iframe>
+```
 
+**Option 2: Fetch from your own widget**
 
-The platform exposes a simple public API (x-api-key) so you can validate workflows via chat and embed the assistant into any web page.
-
-
-\- Public endpoints (no login, require \`x-api-key\`):
-
-  - \`POST /api/v1/public/chat\` — non-stream chat, request body is \`ChatRequest\`.
-
-  - \`POST /api/v1/public/chat/stream\` — streaming chat (SSE), suitable for web embeds.
-
-  - \`POST /api/v1/public/workflows/{workflow_id}/run\` — run a saved workflow (non-stream).
-
-  - \`POST /api/v1/public/workflows/{workflow_id}/run/stream\` — run a saved workflow (SSE: started/progress/complete).
-
-  - \`GET /api/v1/public/workflows/{workflow_id}/io-schema\` — infer workflow-level input/output schema for integration.
-
-  - \`POST /api/v1/public/workflows/{workflow_id}/execute\` — legacy alias of \`run\` (kept for compatibility).
-
-
-\- Admin endpoints for API key management:
-
-  - \`POST /api/v1/admin/api-keys\` — create a key (scopes: \`chat\`, \`workflow\`; optional \`allowed_kb\`, \`allowed_workflow_id\`).
-
-  - \`GET /api/v1/admin/api-keys\` — list keys for your tenant.
-
-  - \`DELETE /api/v1/admin/api-keys/{id}\` — revoke key.
-
-
-**### Workflow API examples**
-
-
-Run (non-stream):
-
-
-\`\`\`bash
-
-curl -sS -X POST "<workflow_id>/run" \\
-
-  -H "Content-Type: application/json" \\
-
-  -H "x-api-key: YOUR_KEY" \\
-
-  -d '{"input_data":{"text":"hello"}}'
-
-\`\`\`
-
-
-Run (stream, SSE):
-
-
-\`\`\`bash
-
-curl -N -X POST "<workflow_id>/run/stream" \\
-
-  -H "Content-Type: application/json" \\
-
-  -H "x-api-key: YOUR_KEY" \\
-
-  -d '{"input_data":{"text":"hello"},"debug":false}'
-
-\`\`\`
-
-
-**### Embedding example**
-
-
-Option 1: iframe
-
-
-\`\`\`html
-
-\<iframe
-
-  src=""
-
-  style="width: 100%; height: 560px; border: 1px solid #eee; border-radius: 8px"
-
-\>\</iframe>
-
-\`\`\`
-
-
-Option 2: fetch from your own widget
-
-
-\`\`\`js
-
-const res = await fetch('', {
-
-  method: 'POST',
-
-  headers: { 'Content-Type': 'application/json', 'x-api-key': 'YOUR_KEY' },
-
-  body: JSON.stringify({ message: 'Hello', knowledge_base_id: 'your_kb' }),
-
+```javascript
+const response = await fetch('YOUR_API_BASE_URL/api/v1/public/chat', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': 'YOUR_KEY'
+  },
+  body: JSON.stringify({
+    message: 'Hello',
+    knowledge_base_id: 'your_kb'
+  })
 });
 
-// Read SSE chunks from res.body and render progressively.
+// For streaming responses, read the SSE chunks from response.body
+// and render them progressively.
+```
 
-\`\`\`
+### API Notes
 
+- Public chat supports RAG through `knowledge_base_id` and automatically routes requests to the appropriate knowledge base for the tenant.
+- Public workflow execution supports cross-tenant **public workflows**. An API key from tenant A can run a workflow owned by tenant B when that workflow is marked `is_public=true`.
+- To restrict cross-tenant workflow execution, bind the API key to an `allowed_workflow_id`.
+- The runtime injects execution context for isolation. The `tenant_id` is set to the workflow owner's tenant, and `user_id` is set to `0`.
 
-Notes:
+## 🏗️ Architecture
 
-\- Public chat supports RAG with \`knowledge_base_id\` and will route to your tenant’s KB automatically.
+The system is designed with a clear separation of concerns:
 
-\- Public workflow execution supports cross-tenant **\*\*public workflows\*\***: an API key from tenant A can run a workflow owned by tenant B if that workflow is marked \`is_public=true\`.
+- **FastAPI Backend (Python):** Handles API requests, business logic, and orchestration.
+- **React Frontend (TypeScript):** Provides the web interface and Material UI components.
+- **Milvus:** Stores and retrieves document embeddings as the vector database.
+- **Elasticsearch:** Provides full-text search for hybrid retrieval.
+- **Multi-Model Support:** Integrates with DeepSeek, Qwen, and SiliconFlow APIs.
 
-\- If you want to restrict cross-tenant workflow execution, bind the API key with \`allowed_workflow_id\`.
+## 📦 Quick Start
 
-\- Runtime injects execution context (\`tenant_id\` is set to the workflow owner tenant; \`user_id=0\`) for isolation.
+You can start the complete stack with Docker Compose (recommended) or run the backend and frontend separately for local development.
 
+### Prerequisites
 
-The system is designed with a clean separation of concerns:
+- Python 3.9 or later.
+- Docker and Docker Compose (recommended for one-command startup).
+- An available Milvus instance.
+- A DashScope API key for Qwen models.
 
+### Docker Compose (Recommended)
 
-\-   **\*\*FastAPI Backend (Python)\*\***: Handles all API requests, business logic, and orchestration.
+Start the backend, frontend, MySQL, Milvus, and Elasticsearch services:
 
-\-   **\*\*React Frontend (TypeScript)\*\***: Modern web interface with Material-UI components.
-
-\-   **\*\*Milvus\*\***: Acts as the vector database for storing and retrieving document embeddings.
-
-\-   **\*\*Elasticsearch\*\***: Provides full-text search capabilities for hybrid retrieval.
-
-\-   **\*\*Multi-Model Support\*\***: Integrates with DeepSeek, Qwen, and SiliconFlow APIs.
-
-
-**## 📦 Quick Start**
-
-
-You can start the whole stack with Docker Compose (recommended), or run backend/frontend locally for development.
-
-
-**### Prerequisites**
-
-
-\-   Python 3.9+
-
-\-   Docker + Docker Compose (recommended for one-command startup)
-
-\-   An available Milvus instance.
-
-\-   A Dashscope API Key for the Qwen models.
-
-
-**### Docker Compose (Recommended)**
-
-
-Bring up backend + frontend + MySQL + Milvus + Elasticsearch:
-
-
-\`\`\`bash
-
-\# (Optional but recommended) create root .env for API keys and overrides
-
+```bash
+# Optional: create the root .env file for API keys and overrides
 cp backend/.env.example .env
 
-
 docker compose -f docker-compose.dev.yml up -d --build
+```
 
-\`\`\`
-
-
-Access:
-
-\- Frontend: \`
-
-\- Backend API docs: \`
-
+After startup, use the frontend address and backend API documentation address configured for your environment.
 
 Useful commands:
 
-
-\`\`\`bash
-
+```bash
+# Follow backend logs
 docker compose -f docker-compose.dev.yml logs -f backend
 
+# Stop the services
 docker compose -f docker-compose.dev.yml down
 
-\# reset volumes if you hit init errors (THIS DELETES DB/VECTOR DATA)
-
+# Remove volumes (this deletes database and vector data)
 docker compose -f docker-compose.dev.yml down -v
+```
 
-\`\`\`
+### Local Setup
 
+1. **Navigate to the backend directory.**
 
-**### Local Setup**
+   ```bash
+   cd backend
+   ```
 
+2. **Configure environment variables.**
 
-1\.  **\*\*Clone the Repository\*\***
+   Create a `.env` file in the `backend/` directory by copying the example file:
 
-    \`\`\`bash
+   ```bash
+   cp .env.example .env
+   ```
 
-    cd ragJ_platform/backend
+   Edit `backend/.env` and add your credentials and connection settings:
 
-    \`\`\`
+   ```dotenv
+   # DashScope API key for Qwen models
+   DASHSCOPE_API_KEY="your_api_key_here"
 
+   # Milvus connection settings
+   MILVUS_HOST="localhost"
+   MILVUS_PORT="19530"
+   ```
 
-2\.  **\*\*Configure Environment Variables\*\***
+3. **Install dependencies.**
 
-    Create a \`.env\` file in the \`backend/\` directory by copying the example:
+   It is recommended to use a virtual environment.
 
-    \`\`\`bash
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
 
-    cp .env.example .env
+4. **Run the backend server.**
 
-    \`\`\`
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
-    Now, edit the \`.env\` file and set your credentials:
+5. **Access the API documentation.**
 
-    \`\`\`
+   Once the backend is running, open the API documentation route (`/docs`) on your configured backend host.
 
-    # backend/.env
+### Frontend Setup
 
+The platform includes a React-based web interface.
 
-    # Your Dashscope API Key for Qwen models
+1. **Navigate to the frontend directory.**
 
-    DASHSCOPE_API_KEY="your_sk_key_here"
+   ```bash
+   cd frontend
+   ```
 
+2. **Install dependencies.**
 
-    # Connection details for your Milvus instance
+   ```bash
+   npm install
+   ```
 
-    MILVUS_HOST="localhost"
+3. **Start the development server.**
 
-    MILVUS_PORT="19530"
+   ```bash
+   npm run dev
+   ```
 
-    \`\`\`
+4. **Open the address printed by the development server** to access the web interface.
 
+### Web Interface Features
 
-3\.  **\*\*Install Dependencies\*\***
+- 📊 **Dashboard:** View system information and statistics.
+- 📚 **Knowledge Base Management:** Create, delete, and manage knowledge bases.
+- 💬 **Intelligent Chat:** Use an interactive chat interface with knowledge base selection.
+- ⚙️ **Model Configuration:** Configure DeepSeek, Qwen, and SiliconFlow APIs.
+- 📝 **Document Management:** Upload and manage documents. The original project notes identify this feature as coming soon.
+- 🌍 **Language Support:** Switch between Chinese and English.
 
-    It is highly recommended to use a virtual environment.
+### Maintenance
 
-    \`\`\`bash
+Elasticsearch index mappings include `tenant_id` and `user_id` as integer fields, and `document_name` and `knowledge_base` as keyword fields. For knowledge bases created with older mappings, rebuild the Elasticsearch index using one of the following endpoints:
 
-    python3 -m venv venv
+- `POST /api/v1/knowledge-bases/{kb_name}/maintenance/rebuild-es-index` — Recreate the Elasticsearch index only.
+- `POST /api/v1/knowledge-bases/{kb_name}/maintenance/rebuild-es-index?reindex=true` — Recreate the index and reindex documents. This reparses source files, so chunking may differ from the data stored in Milvus.
 
-    source venv/bin/activate
+### Upload Processing Options
 
-    pip install --upgrade pip
+- `UPLOAD_DIR` controls where uploaded files are stored. The default is `/tmp/uploads`.
+- Set `USE_CELERY=true` and configure `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` to process documents with a Celery worker instead of the API process.
 
-    pip install -r requirements.txt
+## 🔧 API Usage Guide
 
-    \`\`\`
+This section demonstrates how to use the core RAG pipeline through the API. Replace the example base URL and credentials with values from your environment.
 
+### Step 1: Create a Knowledge Base
 
-4\.  **\*\*Run the Server\*\***
+Create a knowledge base. This corresponds to a collection in Milvus.
 
-    \`\`\`bash
+```bash
+curl -X POST "YOUR_API_BASE_URL/YOUR_KNOWLEDGE_BASE_ENDPOINT" \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my_first_kb",
+    "description": "A knowledge base for testing."
+  }'
+```
 
-    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+A successful response confirms that the knowledge base was created.
 
-    \`\`\`
+### Step 2: Upload a Document
 
+Upload a `.txt` or `.md` document to the knowledge base. The system processes it in the background by chunking, embedding, and indexing its contents.
 
-5\.  **\*\*Access the API\*\***
+Make sure that a file named `sample.txt` exists in your current directory.
 
-    Once the server is running, you can access the interactive API documentation at:
+```bash
+curl -X POST "YOUR_API_BASE_URL/YOUR_DOCUMENT_UPLOAD_ENDPOINT" \
+  -H "accept: application/json" \
+  -F "file=@sample.txt;type=text/plain"
+```
 
-    )
+The API should respond with confirmation that the file was accepted for processing.
 
+### Step 3: Chat with Your Knowledge Base
 
-**### Frontend Setup**
+After the document has been processed, ask questions about its contents. The system retrieves relevant context and uses the configured model to generate an answer.
 
+```bash
+curl -X POST "YOUR_API_BASE_URL/YOUR_CHAT_ENDPOINT" \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "What is this document about?",
+    "knowledge_base_id": "my_first_kb",
+    "model": "qwen-turbo"
+  }'
+```
 
-The platform includes a modern React-based web interface for easy management.
+The response contains an answer generated using the content of the uploaded document.
 
+## 🤖 Model Configuration
 
-1\.  **\*\*Navigate to Frontend Directory\*\***
+The platform supports multiple AI model providers for different use cases.
 
-    \`\`\`bash
+### Supported Providers
 
-    cd frontend
+#### DeepSeek
 
-    \`\`\`
+- **Best for:** Code generation and technical documentation.
+- **Models:** `deepseek-chat`, `deepseek-coder`.
 
+#### Qwen (Tongyi Qianwen)
 
-2\.  **\*\*Install Dependencies\*\***
+- **Best for:** Chinese-language tasks and general AI capabilities.
+- **Models:** `qwen-turbo`, `qwen-plus`, `qwen-max`.
 
-    \`\`\`bash
+#### SiliconFlow
 
-    npm install
+- **Best for:** Cost-effective embedding and reranking.
+- **Models:** Various open-source models, including the BGE series.
 
-    \`\`\`
+### Configuration Presets
 
+The web interface provides three preconfigured setups:
 
-3\.  **\*\*Start Development Server\*\***
+1. **Economic Configuration**
+   - Chat: DeepSeek.
+   - Embedding: SiliconFlow BGE.
+   - Reranking: SiliconFlow BGE.
 
-    \`\`\`bash
+2. **Premium Configuration**
+   - Chat: Qwen Max.
+   - Embedding: Qwen Embedding.
+   - Reranking: Qwen Rerank.
 
-    npm run dev
+3. **Chinese-Optimized Configuration**
+   - Chat: Qwen Plus.
+   - Embedding: SiliconFlow BGE Chinese.
+   - Reranking: SiliconFlow BGE Reranker.
 
-    \`\`\`
-
-
-4\.  **\*\*Access Web Interface\*\***
-
-    The frontend will be available at:
-
-    [)
-
-
-**### Web Interface Features**
-
-
-\-   📊 **\*\*Dashboard\*\***: System overview and statistics
-
-\-   📚 **\*\*Knowledge Base Management\*\***: Create, delete, and manage knowledge bases
-
-\-   💬 **\*\*Intelligent Chat\*\***: Interactive chat interface with knowledge base selection
-
-\-   ⚙️ **\*\*Model Configuration\*\***: Easy setup for DeepSeek, Qwen, and SiliconFlow APIs
-
-\-   📝 **\*\*Document Management\*\***: Upload and manage documents (coming soon)
-
-\-   🌍 **\*\*Language Support\*\***: Switch between Chinese and English interface
-
-
-**### Maintenance**
-
-
-\-   Elasticsearch index mapping updated to include \`tenant_id\`/\`user_id\` (integer) and \`document_name\`/\`knowledge_base\` (keyword) fields. For existing knowledge bases created with older mappings, you can rebuild the ES index:
-
-
-  - \`POST /api/v1/knowledge-bases/{kb_name}/maintenance/rebuild-es-index\` — recreate ES index only
-
-  - \`POST /api/v1/knowledge-bases/{kb_name}/maintenance/rebuild-es-index?reindex=true\` — recreate and reindex documents (re-parses source files; chunking may differ from Milvus)
-
-
-**### Upload Processing Options**
-
-
-\-   \`UPLOAD_DIR\` controls where uploaded files are stored (default \`/tmp/uploads\`).
-
-\-   Set \`USE_CELERY=true\` and configure \`CELERY_BROKER_URL\`/\`CELERY_RESULT_BACKEND\` to offload document processing to a Celery worker instead of the API process.
-
-
-**## 🔧 API Usage Guide**
-
-
-Here is how to use the core RAG pipeline via the API.
-
-
-**### Step 1: Create a Knowledge Base**
-
-
-First, create a new knowledge base. This corresponds to a new "collection" in Milvus.
-
-
-\`\`\`bash
-
-curl -X 'POST' \\
-
-  '' \\
-
-  -H 'accept: application/json' \\
-
-  -H 'Content-Type: application/json' \\
-
-  -d '{
-
-    "name": "my_first_kb",
-
-    "description": "A knowledge base for testing."
-
-  }'
-
-\`\`\`
-
-
-A successful response will confirm that the knowledge base was created.
-
-
-**### Step 2: Upload a Document**
-
-
-Next, upload a document (\`.txt\` or \`.md\`) to your new knowledge base. The system will process it in the background (chunking, embedding, and indexing).
-
-
-**\*\*Note:\*\*** Make sure you have a file named \`sample.txt\` in your current directory.
-
-
-\`\`\`bash
-
-curl -X 'POST' \\
-
-  '' \\
-
-  -H 'accept: application/json' \\
-
-  -F 'file=@sample.txt;type=text/plain'
-
-\`\`\`
-
-
-The API will respond immediately, confirming that the file has been accepted for processing.
-
-
-**### Step 3: Chat with Your Knowledge Base**
-
-
-Once the document has been processed, you can start asking questions. The system will retrieve relevant context from your documents to generate an answer.
-
-
-\`\`\`bash
-
-curl -X 'POST' \\
-
-  '' \\
-
-  -H 'accept: application/json' \\
-
-  -H 'Content-Type: application/json' \\
-
-  -d '{
-
-    "message": "What is this document about?",
-
-    "knowledge_base_id": "my_first_kb",
-
-    "model": "qwen-turbo"
-
-  }'
-
-\`\`\`
-
-
-The response will contain the AI's answer, generated based on the content of the document you uploaded.
-
-
-**## 🤖 Model Configuration**
-
-
-The platform supports multiple AI model providers for different use cases:
-
-
-**### Supported Providers**
-
-
-**#### DeepSeek**
-
-\- **\*\*Best for\*\***: Code generation, technical documentation
-
-\- **\*\*Models\*\***: \`deepseek-chat\`, \`deepseek-coder\`
-
-\- **\*\*API\*\***: 
-
-
-**#### Qwen (Tongyi Qianwen)**
-
-\- **\*\*Best for\*\***: Chinese language tasks, comprehensive AI capabilities
-
-\- **\*\*Models\*\***: \`qwen-turbo\`, \`qwen-plus\`, \`qwen-max\`
-
-\- **\*\*API\*\***: 
-
-
-**#### SiliconFlow**
-
-\- **\*\*Best for\*\***: Cost-effective embedding and reranking
-
-\- **\*\*Models\*\***: Various open-source models including BGE series
-
-\- **\*\*API\*\***: 
-
-
-**### Configuration Presets**
-
-
-The web interface provides three pre-configured setups:
-
-
-1\. **\*\*Economic Configuration\*\***
-
-   - Chat: DeepSeek
-
-   - Embedding: SiliconFlow BGE
-
-   - Rerank: SiliconFlow BGE
-
-
-2\. **\*\*Premium Configuration\*\***
-
-   - Chat: Qwen Max
-
-   - Embedding: Qwen Embedding
-
-   - Rerank: Qwen Rerank
-
-
-3\. **\*\*Chinese-Optimized Configuration\*\***
-
-   - Chat: Qwen Plus
-
-   - Embedding: SiliconFlow BGE Chinese
-
-   - Rerank: SiliconFlow BGE Reranker
-
-
-**### API Key Setup**
-
+### API Key Setup
 
 To configure your models:
 
+1. Open the Settings page in the web interface.
+2. Choose a preset or configure the providers manually.
+3. Add the API keys for the providers you want to use.
+4. Test the connections.
+5. Save the configuration.
 
-1\. Visit the **\*\*Settings\*\*** page in the web interface
+### Language Support
 
-2\. Choose a preset or configure manually
+The web interface supports Chinese and English.
 
-3\. Add your API keys for each provider
+- **Language switching:** Use the language icon in the top-right corner to switch between Chinese and English.
+- **Automatic detection:** The system detects the browser's language preference.
+- **Persistent settings:** The selected language is stored in browser `localStorage` and remembered across sessions.
 
-4\. Test the connections
+#### Supported Languages
 
-5\. Save the configuration
+- **Chinese:** Full interface translation for Chinese users.
+- **English:** Complete interface translation for English users.
 
+The following interface elements are translated:
 
-**### Language Support**
+- Navigation menus.
+- Form labels and buttons.
+- Error messages and notifications.
+- Help text and descriptions.
+- Model configuration options.
 
+## 📚 Modules
 
-The web interface supports both Chinese and English:
+### 1. Document Processing
 
+- **Formats:** PDF, DOCX, TXT, Markdown, and HTML.
+- **Capabilities:** Text extraction, structure parsing, and metadata extraction.
+- **Chunking:** Smart chunking, fixed-length chunking, and semantic splitting.
 
-\- **\*\*Language Switching\*\***: Click the language icon (top-right) to switch between Chinese and English
+### 2. Vectorization
 
-\- **\*\*Auto Detection\*\***: The system automatically detects your browser language preference
+- **Embedding models:** OpenAI, Hugging Face, and local models.
+- **Vector store:** Indexing and retrieval optimizations.
+- **Hybrid retrieval:** Semantic and keyword search.
 
-\- **\*\*Persistent Settings\*\***: Your selection is cached in browser \`localStorage\` and remembered across sessions
+### 3. Q&A
 
+- **RAG pipeline:** Retrieval followed by generation.
+- **Model options:** GPT-class models, Claude-class models, and open-source LLMs.
+- **Conversation context:** Multi-turn chat support.
 
-**#### Supported Languages**
+### 4. LangGraph Workflows
 
+- **Workflow builder:** Graph-based agent and workflow design.
+- **State management:** Persistent execution state and checkpoints.
+- **Multi-agent collaboration:** Agents can coordinate and communicate.
+- **Conditional routing:** Route execution based on conditions.
 
-\- **\*\*Chinese\*\***: Full interface translation for Chinese users
+### 5. Knowledge Base Management
 
-\- **\*\*English\*\***: Complete English interface for international users
+- **Organization:** Hierarchical knowledge base management.
+- **Access control:** Fine-grained permissions.
+- **Versioning:** Document version tracking.
 
+## 🔒 Security
 
-All interface elements, including:
+### API Authentication
 
-\- Navigation menus
+Generate an API key using the platform's security utility:
 
-\- Form labels and buttons
-
-\- Error messages and notifications
-
-\- Help text and descriptions
-
-\- Model configuration options
-
-
-Are fully translated and localized for both languages.
-
-
-**## 📚 Modules**
-
-
-**### 1. Document Processing**
-
-\- **\*\*Formats\*\***: PDF, DOCX, TXT, Markdown, HTML
-
-\- **\*\*Capabilities\*\***: text extraction, structure parsing, metadata extraction
-
-\- **\*\*Chunking\*\***: smart chunking, fixed-length, semantic splitting
-
-
-**### 2. Vectorization**
-
-\- **\*\*Embedding models\*\***: OpenAI, Hugging Face, local models
-
-\- **\*\*Vector store\*\***: indexing and retrieval optimizations
-
-\- **\*\*Hybrid retrieval\*\***: semantic + keyword search
-
-
-**### 3. Q&A**
-
-\- **\*\*RAG pipeline\*\***: retrieve + generate
-
-\- **\*\*Model options\*\***: GPT-class models, Claude-class models, open-source LLMs
-
-\- **\*\*Conversation context\*\***: multi-turn chat support
-
-
-**### 4. LangGraph Workflows**
-
-\- **\*\*Workflow builder\*\***: graph-based agent/workflow design
-
-\- **\*\*State management\*\***: persistent execution state and checkpoints
-
-\- **\*\*Multi-agent collaboration\*\***: agents can coordinate and communicate
-
-\- **\*\*Conditional routing\*\***: route by conditions during execution
-
-
-**### 5. Knowledge Base Management**
-
-\- **\*\*Organization\*\***: hierarchical KB management
-
-\- **\*\*Access control\*\***: fine-grained permissions
-
-\- **\*\*Versioning\*\***: document version tracking
-
-
-**## ✅ Public Repo Checklist (before making GitHub public)**
-
-
-\- Secrets: ensure no API keys/tokens are committed; use \`backend/.env.example\` as the template.
-
-\- Links: replace placeholder links like \` and any non-existent domains/emails.
-
-\- Images: replace/update screenshots under \`images/\`.
-
-\- License: keep README’s license statement consistent with \`LICENSE\`.
-
-
-**## 🔒 Security**
-
-
-**### API authentication**
-
-\`\`\`python
-
-\# Generate an API key
-
+```python
 from backend.app.core.security import generate_api_key
 
-
 api_key = generate_api_key(user_id="user_123")
+```
 
-\`\`\`
+### Permissions
 
+The following is an example permissions configuration:
 
-**### Permissions**
-
-\`\`\`yaml
-
-\# config/permissions.yml
-
+```yaml
+# config/permissions.yml
 roles:
+  admin:
+    - knowledge_base: "*"
+    - document: "*"
+    - user: "*"
+  user:
+    - knowledge_base:read
+    - document:upload
+    - chat:query
+```
 
-  admin:
+## 🚀 Deployment
 
-    - knowledge_base:\*
+### Production Environment Variables
 
-    - document:\*
+Use the following variables as a starting point for a production environment. Replace placeholder values and configure secrets securely.
 
-    - user:\*
-
-  user:
-
-    - knowledge_base:read
-
-    - document:upload
-
-    - chat:query
-
-\`\`\`
-
-
-**## 🚀 Deployment**
-
-
-**### Production environment variables**
-
-
-\`\`\`bash
-
-\# .env.production
-
-DATABASE_URL=postgresql://user:pass\@db:5432/ragj_platform
-
-REDIS_URL=redis\://redis:6379/0
-
+```dotenv
+# Database and storage
+DATABASE_URL=postgresql://user:pass@db:5432/ragj_platform
+REDIS_URL=redis://redis:6379/0
 STORAGE_BACKEND=seaweedfs
-
-S3_ENDPOINT=
-
-S3_ACCESS_KEY=your_access_key
-
-S3_SECRET_KEY=your_secret_key
-
+S3_ENDPOINT=YOUR_S3_ENDPOINT
+S3_ACCESS_KEY=YOUR_S3_ACCESS_KEY
+S3_SECRET_KEY=YOUR_S3_SECRET_KEY
 S3_BUCKET_NAME=ragj-documents
 
+# LLM configuration
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+OPENAI_BASE_URL=YOUR_OPENAI_BASE_URL
 
-\# LLM configuration
-
-OPENAI_API_KEY=your_openai_key
-
-OPENAI_BASE_URL=
-
-
-\# Security configuration
-
-SECRET_KEY=your_super_secret_key
-
+# Security configuration
+SECRET_KEY=YOUR_SECRET_KEY
 JWT_ALGORITHM=HS256
-
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-
-\# Service configuration
-
+# Service configuration
 API_V1_STR=/api/v1
-
 PROJECT_NAME=RAG Platform
-
 DEBUG=false
+```
 
-\`\`\`
+### Monitoring
 
+The following is an example monitoring configuration using Prometheus and Grafana:
 
-**### Monitoring**
-
-
-\`\`\`yaml
-
-\# docker-compose.monitoring.yml
-
+```yaml
+# docker-compose.monitoring.yml
 version: '3.8'
-
 services:
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
 
-  prometheus:
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+```
 
-    image: prom/prometheus
+## 📈 Performance
 
-    ports:
+### Backend Optimizations
 
-      - "9090:9090"
+- Asynchronous and concurrent processing with FastAPI and background tasks.
+- Batch embedding and request coalescing to reduce embedding costs.
+- Tune chunking and retrieval parameters to balance quality and latency.
 
+### Database Optimizations
 
-  grafana:
-
-    image: grafana/grafana
-
-    ports:
-
-      - "3001:3000"
-
-\`\`\`
-
-
-**## 📈 Performance**
-
-
-**### Backend optimizations**
-
-\- Async/concurrent processing (FastAPI + background tasks)
-
-\- Batch embedding and request coalescing (lower embedding cost)
-
-\- Tune chunking and retrieval parameters (quality vs latency)
-
-
-**### Database optimizations**
-
-\`\`\`sql
-
-\-- Vector retrieval index
-
-CREATE INDEX idx_embeddings_vector ON document_chunks&#x20;
-
-USING ivfflat (embedding vector_cosine_ops)&#x20;
-
+```sql
+-- Vector retrieval index
+CREATE INDEX idx_embeddings_vector
+ON document_chunks
+USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 
-
-\-- Metadata query indexes
-
+-- Metadata query indexes
 CREATE INDEX idx_documents_kb_id ON documents(knowledge_base_id);
-
 CREATE INDEX idx_chunks_doc_id ON document_chunks(document_id);
+```
 
-\`\`\`
+### Caching
 
+- Redis for frequently accessed queries.
+- Embedding cache.
+- Document-processing result cache.
 
-**### Caching**
+## 🛠️ Development
 
-\- Redis for hot queries
+### Local Development
 
-\- Embedding cache
-
-\- Document processing result cache
-
-
-**## 🛠️ Development**
-
-
-**### Local development**
-
-
-\`\`\`bash
-
-\# Install dev dependencies
-
+```bash
+# Install development dependencies
 pip install -r requirements-dev.txt
 
-
-\# Formatting
-
+# Format the backend code
 black backend/
 
-
-\# Type checking
-
+# Run type checking
 mypy backend/app/
 
-
-\# Tests
-
+# Run tests
 pytest backend/tests/
+```
 
-\`\`\`
+### API Documentation
 
+After starting the backend, the API documentation is available through the Swagger UI and ReDoc routes configured by the application. The OpenAPI specification is also available from the running backend.
 
-**### API docs**
+## 🤝 Contributing
 
+1. Create a feature branch.
+2. Make your changes and commit them.
+3. Run the relevant tests.
+4. Submit your changes for review through your team's normal contribution process.
 
-\`\`\`bash
+## 📄 License
 
-\# After starting the backend, visit:
+This project is licensed under the MIT License.
 
-         # Swagger UI
+---
 
-        # ReDoc
-
- # OpenAPI spec
-
-\`\`\`
-
-
-**## 🤝 Contributing**
-
-
-1\. Fork the repo
-
-2\. Create a feature branch (\`git checkout -b feature/AmazingFeature\`)
-
-3\. Commit changes (\`git commit -m 'Add some AmazingFeature'\`)
-
-4\. Push the branch (\`git push origin feature/AmazingFeature\`)
-
-5\. Open a Pull Request
-
-
-**## 📄 License**
-
-This project is licensed under the MIT License — see [LICENSE.
-
-
-**## 🆘 Support**
-
-
-\- Discussions: GitHub Discussions
-
-\- Issues: GitHub Issues
-
-\- Docs: \`docs/\`
-
-
-**---**
-
-
-**\*\*Note\*\***: This is a baseline implementation suitable for learning and small deployments. For production use, harden security and tune performance for your workload.
+**Note:** This is a baseline implementation suitable for learning and small deployments. For production use, harden security and tune performance for your workload.
